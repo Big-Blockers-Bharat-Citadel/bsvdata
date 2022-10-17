@@ -5,7 +5,7 @@
 
 ## Project Status
 
-[Website](https://block-data.netlify.app/) [Under Development]
+[Website](https://block-data.netlify.app/) [In Progress]
 
 
 ## Objective
@@ -22,15 +22,19 @@
 * API for retriving data and other information and serve to the frontend.
 * HTML,CSS for Rendering data to the client in an organised way.
 
-## Technologies
+## Tech-Stack Used
 
-*  BSV(Bitcoin Satoshi Vision)
+*  BSV (Bitcoin Satoshi Vision) Network
 *  Scrypt
-*  SMART-CONTRACT
-*  Java-script
-*  API(Application programming interface)..
-*  HTML
-*  CSS
+*  JavaScript
+*  Node.js
+*  Whatsonchain API
+*  HTML/ CSS/ Bootstrap
+
+## Libraries Used
+
+* Scrypitlib
+* Axios
 
 
 
