@@ -70,10 +70,27 @@ compile(
 var data = require('./upload_data_desc.json');
 const MyContract = buildContractClass(JSON.parse(JSON.stringify(data)))
 
+function ascii_to_hexa(str)
+{
+var arr1 = [];
+for (var n = 0, l = str.length; n < l; n ++) 
+    {
+  var hex = Number(str.charCodeAt(n)).toString(16);
+  arr1.push(hex);
+  }
+return arr1.join('');
+  }
+
 
 
 //To create an instance of the contract class
 const instance = new MyContract(new Bytes('20'));
+
+var msg = "Id : 200246, Username : Grey Collar, Status : Online, Prev_Tx : 3e69e51a7c46a9d2a925afe184a5d023c808910df98b39ac3bd7af4ca550951d"
+
+msg = ascii_to_hexa(msg);
+
+instance.message = new Bytes(msg)
 
 
 
@@ -86,7 +103,7 @@ const lockingScriptHex = lockingScript.toHex();
 
 
 // To get the unlocking script
-const funcCall = instance.upload_data(new SigHashPreimage('00'), new Int(0), new Bytes('00'));
+const funcCall = instance.upload_data(new SigHashPreimage('00'), new Int(5000), new Bytes('abcdefABCDEF'));
 const unlockingScript = funcCall.toScript();
 // To convert it to ASM/hex format
 const unlockingScriptASM = unlockingScript.toASM();
@@ -94,21 +111,48 @@ const unlockingScriptHex = unlockingScript.toHex();
 
 
 
+
+export async function sendTx(tx) {
+  const hex = tx.toString();
+
+  if(!tx.checkFeeRate(50)) {
+    throw new Error(`checkFeeRate fail, transaction fee is too low`)
+  }
+
+  try {
+    const {
+      data: txid
+    } = await axios.post(`${API_PREFIX}/tx/raw`, {
+      txhex: hex
+    });
+    console.log(txid)
+    return txid
+  } catch (error) {
+    if (error.response && error.response.data === '66: insufficient priority') {
+      throw new Error(`Rejected by miner. Transaction with fee is too low: expected Fee is ${expectedFee}, but got ${fee}, hex: ${hex}`)
+    } 
+    throw error
+  }
+
+}
+
+
+
 // Deploys any type of contracts
 async function deployContract(contract, amount) {
 
-    const address = privateKey.toAddress()
-    const tx = new bsv.Transaction()
-    tx.from(await fetchUtxos(address))  // Add UTXOs/bitcoins that are locked into the contract and pay for miner fees. In practice, wallets only add enough UTXOs, not all UTXOs as done here for ease of exposition.
-    .addOutput(new bsv.Transaction.Output({  
-      script: contract.lockingScript, // Deploy the contract to the 0-th output
-      satoshis: amount,
-    }))
-    .change(address)   // Add change output
-    .sign(privateKey) // Sign inputs. Only apply to P2PKH inputs.
-    
-    await sendTx(tx) // Broadcast transaction
-    return tx
+  const address = privateKey.toAddress()
+  const tx = new bsv.Transaction()
+  tx.from(await fetchUtxos(address))  // Add UTXOs/bitcoins that are locked into the contract and pay for miner fees. In practice, wallets only add enough UTXOs, not all UTXOs as done here for ease of exposition.
+  .addOutput(new bsv.Transaction.Output({  
+    script: contract.lockingScript, // Deploy the contract to the 0-th output
+    satoshis: 50,
+  }))
+  .change(address)   // Add change output
+  .sign(privateKey) // Sign inputs. Only apply to P2PKH inputs.
+  
+  await sendTx(tx) // Broadcast transaction
+  return tx
 }
 
-deployContract(instance, new Int(45))
+deployContract(instance, new Int(5000));
