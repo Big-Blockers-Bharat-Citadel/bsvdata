@@ -7,6 +7,11 @@ import {
   Int,
 } from "scryptlib/dist/scryptTypes.js";
 
+import {
+  pre_tx,
+  cur_tx
+} from "./var.js"
+
 import { compile } from "scryptlib/dist/compilerWrapper.js";
 
 import { createRequire } from "module";
@@ -78,7 +83,7 @@ compile(
 );
 
 // To fetch and parse _desc.json file
-var data = require("../upload_data_desc.json");
+var data = require("./upload_data_desc.json");
 const MyContract = buildContractClass(JSON.parse(JSON.stringify(data)));
 
 // Converts ascii to hexa
@@ -94,12 +99,10 @@ function ascii_to_hexa(str) {
 //To create an instance of the contract class
 const instance = new MyContract(new Bytes("20"));
 
-var msg =
-  "Id : 200246, Username : Grey Collar, Status : Online, Prev_Tx : 3e69e51a7c46a9d2a925afe184a5d023c808910df98b39ac3bd7af4ca550951d";
-
-msg = ascii_to_hexa(msg);
-
-instance.message = new Bytes(msg);
+function assign_msg(message){
+  message = ascii_to_hexa(message);
+  instance.message = new Bytes(message);
+}
 
 // To get the locking Scipt
 const lockingScript = instance.lockingScript;
@@ -129,7 +132,8 @@ export async function sendTx(tx) {
     const { data: txid } = await axios.post(`${API_PREFIX}/tx/raw`, {
       txhex: hex,
     });
-    console.log(txid);
+    cur_tx = txid;
+    pre_tx = cur_tx;
     return txid;
   } catch (error) {
     if (error.response && error.response.data === "66: insufficient priority") {
@@ -156,13 +160,24 @@ async function deployContract(contract, amount) {
     .sign(privateKey); // Sign inputs. Only apply to P2PKH inputs.
 
   await sendTx(tx); // Broadcast transaction
+  console.log(tx);
   return tx;
 }
 
-// deployContract(instance, new Int(5000));
-
-function update(){
-  // let txn_id = document.getElementById('txn_hash').value;
-  // fetch_api(url_api + txn_id);
-  console.log("done");
+function update(message) {
+  var tmp = message;
+  // if (head != -1) {
+  //   pre_tx = head;
+  // }
+  var tmp2 = "| Prev_Tx : " + pre_tx;
+  console.log(pre_tx);
+  assign_msg(tmp + tmp2);
+  deployContract(instance, new Int(5000));
 }
+
+update("DFHGJSDHKFJKLSDJFBGFDJKGNSF")
+update("DFHGJSDHKFJKLSDJFBGFDJKGNSF")
+update("DFHGJSDHKFJKLSDJFBGFDJKGNSF")
+update("DFHGJSDHKFJKLSDJFBGFDJKGNSF")
+
+// update("Ayush has gone Crazy", pre_tx);

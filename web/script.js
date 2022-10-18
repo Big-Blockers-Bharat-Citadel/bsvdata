@@ -47,8 +47,8 @@ function json_parse(out){
     // console.log(ans);
 
     // backtracks to the previous transaction_id
-    arr = ans.split(",");
-    let prev_txn_arr = arr[arr.length - 1].split(" ");
+    arr = ans.split("|");
+    let prev_txn_arr = arr[arr.length - 1].split(":");
     prev_tx = prev_txn_arr[prev_txn_arr.length - 1]
     ans = "<b>Your Data</b><br><br>";
     prev_tx = "<b> Prev. Txn Hash</b><br>" + prev_tx;
