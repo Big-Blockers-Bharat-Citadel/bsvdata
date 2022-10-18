@@ -6,11 +6,6 @@ import {
   set_value
 } from "./var.js"
 
-// import {
-//   emp,
-//   set_value_2
-// } from "./tmp.js"
-
 
 const require = createRequire(import.meta.url);
 const { exit } = require("process");
