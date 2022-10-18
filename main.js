@@ -12,7 +12,6 @@ const { exit } = require("process");
 const { bsv } = require("scryptlib");
 const axios = require("axios");
 const API_PREFIX = "https://api.whatsonchain.com/v1/bsv/test";
-var i = 0;
 
 // fill in private key on testnet in WIF here
 const privKey = "cUS5fdQ7P26VsWuFcBzLt7Jemcx2ho2sgUPnZDGjhP7DLounEegj";
@@ -125,9 +124,9 @@ export async function sendTx(tx) {
     });
     // localStorage.setItem("previous_hash", txid);
     // pre_tx = txid;
-    // set_value(txid);
+    set_value(txid);
     // set_value_2(txid);
-    // console.log(txid);
+    console.log(txid);
     return txid;
   } catch (error) {
     if (error.response && error.response.data === "66: insufficient priority") {
@@ -143,7 +142,7 @@ export async function sendTx(tx) {
 async function deployContract(contract, amount) {
   const address = privateKey.toAddress();
   const tx = new bsv.Transaction();
-  tx.from(await fetchUtxos(address)) // Add UTXOs/bitcoins that are locked into the contract and pay for miner fees. In practice, wallets only add enough UTXOs, not all UTXOs as done here for ease of exposition.
+  var data = tx.from(await fetchUtxos(address)) // Add UTXOs/bitcoins that are locked into the contract and pay for miner fees. In practice, wallets only add enough UTXOs, not all UTXOs as done here for ease of exposition.
     .addOutput(
       new bsv.Transaction.Output({
         script: contract.lockingScript, // Deploy the contract to the 0-th output
@@ -153,11 +152,15 @@ async function deployContract(contract, amount) {
     .change(address) // Add change output
     .sign(privateKey); // Sign inputs. Only apply to P2PKH inputs.
 
-  return await sendTx(tx); // Broadcast transaction
+  var data_2 = await sendTx(tx); // Broadcast transaction
+
+  if(data_2 && data){
+
+  }
+
 }
 
 export function update(message) {
-  i = i + 1;
   var tmp = message;
   // if (head != -1) {
   //   pre_tx = head;

@@ -3,10 +3,6 @@ export function set_value(a){
     pre_tx = a;
 }
 
-import {
-    update
-} from "./main.js"
-
 function solve(){
     for (let i = 0; i < 5; i++) {
         let text = "The number is " + i + "<br>";
@@ -14,6 +10,4 @@ function solve(){
         console.log(pre_tx);
     }
 }
-
-solve();
 
