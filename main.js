@@ -124,7 +124,7 @@ export async function sendTx(tx) {
     });
     // localStorage.setItem("previous_hash", txid);
     // pre_tx = txid;
-    set_value(txid);
+    // set_value(txid);
     // set_value_2(txid);
     console.log(txid);
     return txid;
@@ -171,3 +171,5 @@ export function update(message) {
 }
 
 // console.log(update("This is a iteration"))
+
+update("My name is  ayush kumar 454");
