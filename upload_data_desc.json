@@ -1,6 +1,6 @@
 {
     "version": 9,
-    "compilerVersion": "1.17.3+commit.b1bcb14",
+    "compilerVersion": "1.18.0+commit.3c0ae43",
     "contract": "Counter",
     "md5": "7624b2c3d185f03a4af8b2645a8ab504",
     "structs": [],

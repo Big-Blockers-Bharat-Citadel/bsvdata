@@ -1,11 +1,14 @@
-import { compile, buildContractClass, Bytes, Sig, SigHashPreimage, Int} from 'scryptlib';
-import { createRequire} from 'module';
-
 import {
-  pre_tx,
-  set_value
-} from "./var.js"
-
+  compile,
+  buildContractClass,
+  Bytes,
+  Sig,
+  SigHashPreimage,
+  Int,
+  typeOfArg,
+} from "scryptlib";
+import { createRequire } from "module";
+import fetch from "node-fetch";
 
 const require = createRequire(import.meta.url);
 const { exit } = require("process");
@@ -24,6 +27,7 @@ if (!privKey) {
   genPrivKey();
 }
 
+// Generates Private Key
 export function genPrivKey() {
   const newPrivKey = new bsv.PrivateKey.fromRandom("testnet");
   console.log(
@@ -42,20 +46,6 @@ export const privateKey2 = privKey2
 export const privateKey3 = privKey3
   ? new bsv.PrivateKey.fromWIF(privKey3)
   : privateKey;
-
-export async function fetchUtxos(address) {
-  // step 1: fetch utxos
-  let { data: utxos } = await axios.get(
-    `${API_PREFIX}/address/${address}/unspent`
-  );
-
-  return utxos.map((utxo) => ({
-    txId: utxo.tx_hash,
-    outputIndex: utxo.tx_pos,
-    satoshis: utxo.value,
-    script: bsv.Script.buildPublicKeyHashOut(address).toHex(),
-  }));
-}
 
 // The compiler output results in a JSON file
 compile(
@@ -89,13 +79,20 @@ function ascii_to_hexa(str) {
 //To create an instance of the contract class
 const instance = new MyContract(new Bytes("20"));
 
-function assign_msg(message){
+// assigns the instance with the required data
+function assign_msg(message) {
   message = ascii_to_hexa(message);
   instance.message = new Bytes(message);
 }
 
+var i = 0;
+var pre_tx = "This is the first row";
+var last_row_index = 20;
+var num_col = 2;
+
 // To get the locking Scipt
 const lockingScript = instance.lockingScript;
+
 // To convert it to ASM/hex format
 const lockingScriptASM = lockingScript.toASM();
 const lockingScriptHex = lockingScript.toHex();
@@ -103,15 +100,33 @@ const lockingScriptHex = lockingScript.toHex();
 // To get the unlocking script
 const funcCall = instance.upload_data(
   new SigHashPreimage("00"),
-  new Int(5000),
+  new Int(0),
   new Bytes("abcdefABCDEF")
 );
 const unlockingScript = funcCall.toScript();
+
 // To convert it to ASM/hex format
 const unlockingScriptASM = unlockingScript.toASM();
 const unlockingScriptHex = unlockingScript.toHex();
 
-export async function sendTx(tx) {
+export async function fetchUtxos(address) {
+  // step 1: fetch utxos
+  let { data: utxos } = await axios
+    .get(`${API_PREFIX}/address/${address}/unspent`)
+    .catch((err) => {
+      return { data: "There was an error! get" };
+    });
+
+  return utxos.map((utxo) => ({
+    txId: utxo.tx_hash,
+    outputIndex: utxo.tx_pos,
+    satoshis: utxo.value,
+    script: bsv.Script.buildPublicKeyHashOut(address).toHex(),
+  }));
+}
+
+// Broadcast Transaction and return Txid
+export async function sendTx(tx, data_json) {
   const hex = tx.toString();
 
   if (!tx.checkFeeRate(50)) {
@@ -119,15 +134,26 @@ export async function sendTx(tx) {
   }
 
   try {
-    const { data: txid } = await axios.post(`${API_PREFIX}/tx/raw`, {
-      txhex: hex,
-    });
-    // localStorage.setItem("previous_hash", txid);
-    // pre_tx = txid;
-    // set_value(txid);
-    // set_value_2(txid);
-    console.log(txid);
-    return txid;
+    const { data: txid } = await axios
+      .post(`${API_PREFIX}/tx/raw`, {
+        txhex: hex,
+      })
+      .catch((err) => {
+        i = i - 1;
+        return { data: "" };
+      });
+    if (txid.length == 64) {
+      pre_tx = txid;
+      console.log(i + " -> " + txid);
+    }
+    if (i < last_row_index) {
+      i = i + 1;
+      update(create_msg(data_json, i), data_json);
+    } else {
+      console.log("Your Head Transaction Hash is " + txid);
+      return txid;
+    }
+    // return txid;
   } catch (error) {
     if (error.response && error.response.data === "66: insufficient priority") {
       throw new Error(
@@ -138,11 +164,12 @@ export async function sendTx(tx) {
   }
 }
 
-// Deploys any type of contracts
-async function deployContract(contract, amount) {
+// deploys any type of contracts
+async function deployContract(contract, amount, data_json) {
   const address = privateKey.toAddress();
   const tx = new bsv.Transaction();
-  var data = tx.from(await fetchUtxos(address)) // Add UTXOs/bitcoins that are locked into the contract and pay for miner fees. In practice, wallets only add enough UTXOs, not all UTXOs as done here for ease of exposition.
+  let data = tx
+    .from(await fetchUtxos(address)) // Add UTXOs/bitcoins that are locked into the contract and pay for miner fees. In practice, wallets only add enough UTXOs, not all UTXOs as done here for ease of exposition.
     .addOutput(
       new bsv.Transaction.Output({
         script: contract.lockingScript, // Deploy the contract to the 0-th output
@@ -152,24 +179,39 @@ async function deployContract(contract, amount) {
     .change(address) // Add change output
     .sign(privateKey); // Sign inputs. Only apply to P2PKH inputs.
 
-  var data_2 = await sendTx(tx); // Broadcast transaction
+  await sendTx(tx, data_json); // Broadcast transaction
 
-  if(data_2 && data){
-
-  }
-
+  return tx;
 }
 
-export function update(message) {
+// deploy each row
+export async function update(message, data_json) {
   var tmp = message;
-  // if (head != -1) {
-  //   pre_tx = head;
-  // }
   var tmp2 = "| Prev_Tx : " + pre_tx;
   assign_msg(tmp + tmp2);
-  return deployContract(instance, new Int(5000));
+  await deployContract(instance, new Int(0), data_json);
+
+  return;
 }
 
-// console.log(update("This is a iteration"))
+// convert dataframe row to string
+function create_msg(data, i) {
+  let data_string =
+    data[i].id + " " + data[i].file_name + " " + data[i].prediction;
 
-update("My name is  ayush kumar 454");
+  return data_string;
+}
+
+// fetches csv file and deploys on testnet
+async function fetch_api(url) {
+  const response = await fetch(url);
+  let data = await response.json();
+  let mssg = create_msg(data, i);
+  last_row_index =  data.length;
+  // console.log(typeof(data[0]))
+  // console.log(Object.keys(data[0]).length)
+  update(mssg, data);
+}
+
+// function is called
+fetch_api("https://retoolapi.dev/veKA1F/data");
