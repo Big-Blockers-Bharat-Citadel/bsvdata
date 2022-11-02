@@ -1,4 +1,4 @@
-contract Counter{
+contract upload_data{
     @state
     bytes message;
 

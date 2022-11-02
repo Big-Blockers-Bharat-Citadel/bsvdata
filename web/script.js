@@ -1,8 +1,10 @@
 let url_api = 'https://api.whatsonchain.com/v1/bsv/test/tx/hash/';
 let prev_tx = "";
 
-function show(){
-    let txn_id = document.getElementById('txn_hash').value;
+function show(a){
+    let txn_id;
+    if(!a) txn_id = document.getElementById('txn_hash').value;
+    else txn_id = a;
     fetch_api(url_api + txn_id);
 }
 
@@ -50,14 +52,15 @@ function json_parse(out){
     arr = ans.split("|");
     let prev_txn_arr = arr[arr.length - 1].split(":");
     prev_tx = prev_txn_arr[prev_txn_arr.length - 1]
+    prev_tx_tmp = prev_tx;
     ans = "<b>Your Data</b><br><br>";
-    prev_tx = "<b> Prev. Txn Hash</b><br>" + prev_tx;
+    prev_tx = "<b> Prev. Txn Hash</b><br>" + "<div id = " + '"txid"' + ">" + prev_tx + "</div>";
     for(let i = 0; i < arr.length - 1; i++) {
         ans += arr[i] + "<br>";
     }
     document.getElementById('data_content').innerHTML = ans;
     document.getElementById('prev_txn').innerHTML = prev_tx;
-    // if(prev_tx.length == 64) fetch_api(url_api + prev_tx)
+    // document.getElementById("txid").addEventListener("click", show(prev_tx_tmp));
     
     return;
 }

@@ -7,6 +7,12 @@ import {
   Int,
   typeOfArg,
 } from "scryptlib";
+
+import {
+  rand_address,
+  private_key,
+} from "./generate.js";
+
 import { createRequire } from "module";
 import fetch from "node-fetch";
 
@@ -15,6 +21,11 @@ const { exit } = require("process");
 const { bsv } = require("scryptlib");
 const axios = require("axios");
 const API_PREFIX = "https://api.whatsonchain.com/v1/bsv/test";
+
+// assigning varibles
+var i = 0;
+var pre_tx = "This is the first row";
+var last_row_index = 0;
 
 // fill in private key on testnet in WIF here
 const privKey = "cUS5fdQ7P26VsWuFcBzLt7Jemcx2ho2sgUPnZDGjhP7DLounEegj";
@@ -32,7 +43,7 @@ export function genPrivKey() {
   const newPrivKey = new bsv.PrivateKey.fromRandom("testnet");
   console.log(
     `Please fill you Private Key and make sure it's funded. \n 
-    If not fund it from sCrypt faucet https://scrypt.io/#faucet`
+    If not, fund it from sCrypt faucet https://scrypt.io/#faucet`
   );
   exit(-1);
 }
@@ -85,11 +96,6 @@ function assign_msg(message) {
   instance.message = new Bytes(message);
 }
 
-var i = 0;
-var pre_tx = "This is the first row";
-var last_row_index = 20;
-var num_col = 2;
-
 // To get the locking Scipt
 const lockingScript = instance.lockingScript;
 
@@ -116,7 +122,7 @@ export async function fetchUtxos(address) {
     .catch((err) => {
       return { data: "There was an error! get" };
     });
-
+  
   return utxos.map((utxo) => ({
     txId: utxo.tx_hash,
     outputIndex: utxo.tx_pos,
@@ -140,20 +146,23 @@ export async function sendTx(tx, data_json) {
       })
       .catch((err) => {
         i = i - 1;
-        return { data: "" };
+        return { data: "Error" };
       });
     if (txid.length == 64) {
       pre_tx = txid;
       console.log(i + " -> " + txid);
     }
-    if (i < last_row_index) {
-      i = i + 1;
-      update(create_msg(data_json, i), data_json);
-    } else {
-      console.log("Your Head Transaction Hash is " + txid);
-      return txid;
+    else{
+      console.log("oops! this is not a txid");
     }
-    // return txid;
+    // if (i < last_row_index - 1) {
+    //   i = i + 1;
+    //   update(create_msg(data_json, i), data_json);
+    // } else {
+    //   console.log("Your Head Transaction Hash is " + txid);
+    //   return txid;
+    // }
+    return txid;
   } catch (error) {
     if (error.response && error.response.data === "66: insufficient priority") {
       throw new Error(
@@ -166,7 +175,11 @@ export async function sendTx(tx, data_json) {
 
 // deploys any type of contracts
 async function deployContract(contract, amount, data_json) {
+  // let x = Math.floor((Math.random() * 100) + 1);
+  // x = x % 4;
+  // const address = rand_address[x];
   const address = privateKey.toAddress();
+  // console.log(address)
   const tx = new bsv.Transaction();
   let data = tx
     .from(await fetchUtxos(address)) // Add UTXOs/bitcoins that are locked into the contract and pay for miner fees. In practice, wallets only add enough UTXOs, not all UTXOs as done here for ease of exposition.
@@ -187,7 +200,7 @@ async function deployContract(contract, amount, data_json) {
 // deploy each row
 export async function update(message, data_json) {
   var tmp = message;
-  var tmp2 = "| Prev_Tx : " + pre_tx;
+  var tmp2 = "| Prev_Tx :" + pre_tx;
   assign_msg(tmp + tmp2);
   await deployContract(instance, new Int(0), data_json);
 
@@ -206,12 +219,21 @@ function create_msg(data, i) {
 async function fetch_api(url) {
   const response = await fetch(url);
   let data = await response.json();
-  let mssg = create_msg(data, i);
-  last_row_index =  data.length;
+  last_row_index = data.length;
   // console.log(typeof(data[0]))
   // console.log(Object.keys(data[0]).length)
-  update(mssg, data);
+  // update(mssg, data);
+  var interval = setInterval(function () {
+    let mssg = create_msg(data, i);
+    update(mssg, data);
+    i += 1;
+    if (i >= last_row_index) {
+      clearInterval(interval);
+    }
+  }, 5000);
 }
 
 // function is called
 fetch_api("https://retoolapi.dev/veKA1F/data");
+
+// console.log(address);
