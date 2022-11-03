@@ -55,14 +55,14 @@ async function sendTx(tx, address) {
     }
   }
 
-async function tmp(){
-    const keyPayer = 'cUS5fdQ7P26VsWuFcBzLt7Jemcx2ho2sgUPnZDGjhP7DLounEegj'  // Ayush WIF for funding contracts
+async function p2pkh_deploy(){
+    const keyPayer = 'cRfw5AoMHLqtB4xgc5QFs8zHG8xGuEf25T4LfDsozaKfMgma84Zb'  // Ayush WIF for funding contracts
     const privateKey = new bsv.PrivateKey.fromWIF(keyPayer)
     const publicKeyPayer = privateKey.publicKey
 
     // console.log(publicKeyPayer);
 
-    const keyPayee = 'cRfw5AoMHLqtB4xgc5QFs8zHG8xGuEf25T4LfDsozaKfMgma84Zb'  // 1st WIF to receive funds
+    const keyPayee = 'cUS5fdQ7P26VsWuFcBzLt7Jemcx2ho2sgUPnZDGjhP7DLounEegj'  // 1st WIF to receive funds
     let priKeyPayee = new bsv.PrivateKey.fromWIF(keyPayee); // Payee (eg 1st) Private Key receive funds
     const publicKeyPayee = priKeyPayee.publicKey
 
@@ -78,22 +78,19 @@ async function tmp(){
     console.log('p2pkh: ', toHex(publicKeyPayeeHash))
 
 
-    const amountInContract = 1000;
-    const deployTx = await createLockingTx(privateKey.toAddress(), amountInContract)
-    deployTx.outputs[0].setScript(p2pkh.lockingScript)
-    const FEE = 100
-    const spendAmount = 100
-    deployTx.sign(privateKey)
-    const deployTxId = await sendTx(deployTx)
+    // const amountInContract = 1000;
+    // const deployTx = await createLockingTx(privateKey.toAddress(), amountInContract)
+    // deployTx.outputs[0].setScript(p2pkh.lockingScript)
+    // const FEE = 100
+    // const spendAmount = 100
+    // deployTx.sign(privateKey)
+    // const deployTxId = await sendTx(deployTx)
   
-    console.log('Contract Deployed Successfully! TxId: ', deployTxId)
+    // console.log('Contract Deployed Successfully! TxId: ', deployTxId)
 }
 
-
-tmp();
-
-// for(let i=0; i<total; i++){
-//     genPrivKey();
-//     console.log(i + "\nAddress -> " + rand_address[i] + "\nPrivate Key -> " + private_key[i] + "\n");
-// }
+for(let i=0; i<total; i++){
+    genPrivKey();
+    console.log(i + "\nAddress -> " + rand_address[i] + "\nPrivate Key -> " + private_key[i] + "\n");
+}
 

@@ -2,7 +2,7 @@
     "version": 9,
     "compilerVersion": "1.19.0+commit.72eaeba",
     "contract": "P2PKH",
-    "md5": "56a63badd367fcf0c529960b3a1131c9",
+    "md5": "527c9aef499370e3f2bf8c69df4d54e9",
     "structs": [
         {
             "name": "SortedItem",
@@ -57,6 +57,6 @@
     "stateProps": [],
     "buildType": "debug",
     "file": "file:///c:/Users/ayush/Desktop/bc/Sopaana/p2pkh.scrypt",
-    "hex": "00<pubKeyHash>610079527a75517a75615179a95179876952795279ac777777",
+    "hex": "<pubKeyHash>5179a95179876952795279ac777777",
     "sourceMapFile": ""
 }
