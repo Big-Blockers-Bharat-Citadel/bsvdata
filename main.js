@@ -8,10 +8,10 @@ import {
   typeOfArg,
 } from "scryptlib";
 
-import {
-  rand_address,
-  private_key,
-} from "./generate.js";
+// import {
+//   rand_address,
+//   private_key,
+// } from "./generate.js";
 
 import { createRequire } from "module";
 import fetch from "node-fetch";
@@ -26,13 +26,15 @@ const API_PREFIX = "https://api.whatsonchain.com/v1/bsv/test";
 var i = 0;
 var pre_tx = "This is the first row";
 var last_row_index = 0;
+var rand_address = ['n1XUyyk3CwZ52TvuGDg1hn37ayjtk2Sr9c', 'n3bpgiz5fNb5VwsNHD9SzmbiWSXxTGBRhZ', 'mohXniK7gEMU19qoXrMNKQP6upXkvS6YVN', 'my4rzLDYCjw579hZhB8GpdSJdtzaNou2EB', 'mmCzDhppF2vbuFuyL2KRczh3yJo9WtQLqL'];
+var private_key = ['cRfw5AoMHLqtB4xgc5QFs8zHG8xGuEf25T4LfDsozaKfMgma84Zb', 'cP9y3Rk9ybFHKPL6L3C4z9MPcYYscHr2B8AJ439bpsNNWYfEfTco', 'cVHcV7fXWo4DvFe32iSqCwhzdDAu4D9uWDvpSdebQ5TPKE6smjjv', 'cVDRjiLZY57K3SMjMkzA8pGLZP7wYd7qLz31ikRuxXr9bHun1Nx2', 'cTHggGBfQEj8ctDFcbQrf6bcTgSBcsS1mjVaUKAqcG4VS9cdwTQA'];
 
 // fill in private key on testnet in WIF here
-const privKey = "cUS5fdQ7P26VsWuFcBzLt7Jemcx2ho2sgUPnZDGjhP7DLounEegj";
+var privKey = "cUS5fdQ7P26VsWuFcBzLt7Jemcx2ho2sgUPnZDGjhP7DLounEegj";
 
 // be default, you do NOT fill in these two, since they are only needed when multiple keys are required
-const privKey2 = "";
-const privKey3 = "";
+var privKey2 = "";
+var privKey3 = "";
 
 if (!privKey) {
   genPrivKey();
@@ -48,13 +50,13 @@ export function genPrivKey() {
   exit(-1);
 }
 
-export const privateKey = new bsv.PrivateKey.fromWIF(privKey);
+export var privateKey = new bsv.PrivateKey.fromWIF(privKey);
 
-export const privateKey2 = privKey2
+export var privateKey2 = privKey2
   ? new bsv.PrivateKey.fromWIF(privKey2)
   : privateKey;
 
-export const privateKey3 = privKey3
+export var privateKey3 = privKey3
   ? new bsv.PrivateKey.fromWIF(privKey3)
   : privateKey;
 
@@ -132,7 +134,7 @@ export async function fetchUtxos(address) {
 }
 
 // Broadcast Transaction and return Txid
-export async function sendTx(tx, data_json) {
+export async function sendTx(tx, address) {
   const hex = tx.toString();
 
   if (!tx.checkFeeRate(50)) {
@@ -150,10 +152,7 @@ export async function sendTx(tx, data_json) {
       });
     if (txid.length == 64) {
       pre_tx = txid;
-      console.log(i + " -> " + txid);
-    }
-    else{
-      console.log("oops! this is not a txid");
+      console.log("Current Address -> " + address + "\n" + i + " -> " + txid + "\n");
     }
     // if (i < last_row_index - 1) {
     //   i = i + 1;
@@ -175,10 +174,17 @@ export async function sendTx(tx, data_json) {
 
 // deploys any type of contracts
 async function deployContract(contract, amount, data_json) {
-  // let x = Math.floor((Math.random() * 100) + 1);
-  // x = x % 4;
-  // const address = rand_address[x];
-  const address = privateKey.toAddress();
+  let x = Math.floor((Math.random() * 100) + 1);
+  x = x % 5;
+  const address = rand_address[x];
+  privKey = private_key[x];
+
+  // const address = "mfyegphsnXJzyYAoLgjrCuvjetLthG4gxj";
+  // privKey = "cQoYixiRvqxWUo5PkKFayPndu3cWjRka3GDKN7zDz4RgRSxuD8CX";
+  privateKey = new bsv.PrivateKey.fromWIF(privKey);
+  // console.log('Current Address -> ' + address + "\n");
+  
+  // const address = privateKey.toAddress();
   // console.log(address)
   const tx = new bsv.Transaction();
   let data = tx
@@ -192,7 +198,7 @@ async function deployContract(contract, amount, data_json) {
     .change(address) // Add change output
     .sign(privateKey); // Sign inputs. Only apply to P2PKH inputs.
 
-  await sendTx(tx, data_json); // Broadcast transaction
+  await sendTx(tx, address); // Broadcast transaction
 
   return tx;
 }
@@ -235,5 +241,6 @@ async function fetch_api(url) {
 
 // function is called
 fetch_api("https://retoolapi.dev/veKA1F/data");
+// console.log(rand_address);
 
 // console.log(address);
