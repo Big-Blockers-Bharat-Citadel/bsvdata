@@ -3,21 +3,24 @@ import fetch from "node-fetch";
 const require = createRequire(import.meta.url);
 const { bsv } = require("scryptlib");
 
-let url_api = 'https://api.whatsonchain.com/v1/bsv/test/address/';
-let tx_address = "n3bpgiz5fNb5VwsNHD9SzmbiWSXxTGBRhZ";
-
-// { confirmed: 199871, unconfirmed: 0 } 
+// { confirmed: 134049, unconfirmed: 0 } 
 // n1XUyyk3CwZ52TvuGDg1hn37ayjtk2Sr9c
-// { confirmed: 923256, unconfirmed: 0 } 
+// { confirmed: 1174412, unconfirmed: 0 } 
 //mu5bCTKn47rGPBSQ3akJaJa6XxCkCKkue9
 
-async function fetch_api(url){
-    const response = await fetch(url);
-    var data = await response.json();
-    // if(response) json_parse(data);
-    if(response){
-        console.log(data)
+export async function fetch_balance(address){
+    let url = 'https://api.whatsonchain.com/v1/bsv/test/address/' + address + "/balance";
+  
+    try {
+        const response = await fetch(url);
+        var data = await response.json();
+        if(response) { 
+            // console.log(data);
+            return data.confirmed + data.unconfirmed };
+    } 
+    catch (error) {
+        return 0;
     }
-}
+  }
 
-fetch_api(url_api + tx_address + "/balance");
+// fetch_balance("mu5bCTKn47rGPBSQ3akJaJa6XxCkCKkue9");
