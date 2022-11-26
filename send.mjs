@@ -38,6 +38,7 @@ export async function sendTx(tx) {
   }
 }
 
+// send money to multiple addresses
 export async function send_money(sender_priv_key, reciever_addresses, amount_to_send) {
   const senderPrivateKey = new bsv.PrivateKey.fromWIF(sender_priv_key);
   const senderAddress = `${senderPrivateKey.toAddress()}`
@@ -60,5 +61,4 @@ export async function send_money(sender_priv_key, reciever_addresses, amount_to_
     .seal();
 
   await sendTx(tx);
-  console.log(tx.id);
 }
