@@ -45,4 +45,4 @@ export async function transfer(private_key) {
   return await send_money(private_key, reciever_addresses, amount);
 }
 
-
+await transfer("cPPtcM6xRQ5fQ73GT2F36rA4CmGjC8jPgG2C3zwCE3YQSASSTXGv")

@@ -16,9 +16,9 @@ export function genPrivKey(src) {
   data.table.push(obj);
 }
 
-export function create_json(total) {
+export function create_json(total, src) {
   for (let i = 0; i < total; i++) {
-    genPrivKey();
+    genPrivKey(src);
   }
 
   fs.writeFile(

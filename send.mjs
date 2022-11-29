@@ -3,7 +3,7 @@ import axios from "axios";
 const API_PREFIX = "https://api.whatsonchain.com/v1/bsv/test";
 
 // fetch Utxos
-export async function fetchUtxos(address, amount) {
+export async function fetchUtxos(address) {
   let { data: utxos } = await axios.get(`${API_PREFIX}/address/${address}/unspent`)
     .catch(async () => {
       throw Error(`api rate limit reached`);
