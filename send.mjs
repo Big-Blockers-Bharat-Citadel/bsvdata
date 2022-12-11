@@ -1,13 +1,16 @@
 import { bsv } from 'scryptlib';
 import axios from "axios";
+import fetch from "node-fetch";
 const API_PREFIX = "https://api.whatsonchain.com/v1/bsv/test";
 
 // fetch Utxos
 export async function fetchUtxos(address) {
-  let { data: utxos } = await axios.get(`${API_PREFIX}/address/${address}/unspent`)
-    .catch(async () => {
-      throw Error(`api rate limit reached`);
-    });
+
+  let url = `${API_PREFIX}/address/${address}/unspent`
+  var utxos = "";
+  const response = await fetch(url);
+  if(!response) console.log('api rate limit reached');
+  else utxos = await response.json();
  
   return utxos.map((utxo) => ({
     txId: utxo.tx_hash,
@@ -30,7 +33,8 @@ export async function sendTx(tx) {
       .catch(async (err) => {
         throw err;
       });
- 
+    
+    console.log(`Transaction Hash -> ${txid}`);
     return txid;
   } 
   catch (error) {

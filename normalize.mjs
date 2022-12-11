@@ -20,7 +20,8 @@ export async function get_balance() {
 
 export async function min_balance(cur_balance, min_limit, address) {
   if (cur_balance < min_limit) {
-    throw new Error(`${address} has less than ${min_limit} satoshis`);
+    console.log(`${address} has less than ${min_limit} satoshis`)
+    throw new Error("Insufficient Balance to Normalize");
   }
   return true;
 }
@@ -34,13 +35,13 @@ export async function transfer(private_key) {
   await min_balance(cur_balance, 2000, address);
   const amount = (cur_balance - (cur_balance % len) - 25 * len) / len;
   if (amount <= 0) {
-    throw new Error(
-      `sending amount not a positive integer.\n please fund your address, ${address}`
-    );
+    console.log(`sending amount not a positive integer.\n please fund your address, ${address}`);
+    throw new Error("Please fund your address");
   }
   const reciever_addresses = [];
   for (let i = 0; i < len; i++) {
     reciever_addresses.push(json.table[i].address);
   }
+  
   return await send_money(private_key, reciever_addresses, amount);
 }

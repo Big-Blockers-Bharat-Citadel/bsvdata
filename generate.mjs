@@ -6,9 +6,10 @@ var fs = require("fs");
 
 var data = {};
 data.table = [];
+var source = "testnet";
 
-export function genPrivKey(src) {
-  const newPrivKey = new bsv.PrivateKey.fromRandom(src); // src = "testnet"
+export function genPrivKey() {
+  const newPrivKey = new bsv.PrivateKey.fromRandom(source); // src = "testnet"
   var obj = {
     private_key: `${newPrivKey.toWIF()}`,
     address: `${newPrivKey.toAddress()}`,
@@ -16,13 +17,14 @@ export function genPrivKey(src) {
   data.table.push(obj);
 }
 
-export function create_json(total, src) {
+export function create_json(total, path) {
+  source = src;
   for (let i = 0; i < total; i++) {
-    genPrivKey(src);
+    genPrivKey();
   }
 
   fs.writeFile(
-    "secrets.json",
+    path,
     JSON.stringify(data, null, "\t"),
     "utf8",
     function (err) {
