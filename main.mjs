@@ -2,6 +2,7 @@ import { buildContractClass, Bytes, compileContract, Int } from "scryptlib";
 import { fetch_balance } from "./checker.mjs";
 import { createRequire } from "module";
 import fetch from "node-fetch";
+import { MongoClient } from 'mongodb';
 
 const require = createRequire(import.meta.url);
 const { bsv } = require("scryptlib");
@@ -10,11 +11,12 @@ const API_PREFIX = "https://api.whatsonchain.com/v1/bsv/test";
 
 // assigning varibles
 var i = 0;
-var pre_tx = "This is the first row";
+var pre_tx = "This is the genesis (first) transaction";
 var last_row_index = 0;
-const json = require("./secrets.json"); // use your own relative path here
+var json = require("./secrets.json"); // default path
 var rand_address = [];
 var private_key = [];
+var db;
 
 // fill in private key on testnet in WIF here
 var privKey = ""; // Ayush Private Key
@@ -54,14 +56,24 @@ export function assign_msg(message) {
   instance.message = new Bytes(message);
 }
 
+// Updates MongoDB collection
+export function mongodb_update(index, txid){
+  db.collection("row_txid").insertOne({
+    row: index,
+    cur_txid: txid
+  });
+}
+
+// fetches Utxos of address
 export async function fetchUtxos(address) {
-  // step 1: fetch utxos
-  let { data: utxos } = await axios
-    .get(`${API_PREFIX}/address/${address}/unspent`)
-    .catch(async (err) => {
-      await sleep(1000);
-      throw Error(`api rate limit reached`);
-    });
+  let url = `${API_PREFIX}/address/${address}/unspent`
+  const response = await fetch(url);
+  var utxos = await response.json();
+  if(!response){
+    console.log('api rate limit reached\nCode went to sleep for 1 sec');
+    sleep(1000);
+  }
+
   return utxos.map((utxo) => ({
     txId: utxo.tx_hash,
     outputIndex: utxo.tx_pos,
@@ -81,19 +93,20 @@ export async function sendTx(tx, address, data_json) {
   try {
     ({ data: txid } = await axios
       .post(`${API_PREFIX}/tx/raw`, { txhex: hex })
-      .catch(async (err) => {
+      .catch(async () => {
         i = i - 1;
-        console.log("Txn-Mempool-Conflict");
+        console.log("Transaction Mempool Conflict");
         return { data: "" };
       }));
 
     if (txid.length == 64) {
+      mongodb_update(i+1, txid);
       pre_tx = txid;
       console.log("Current Address -> " + address + "\n" + i + " -> " + txid);
     }
 
     if (i < last_row_index - 1) {
-      i = i + 1;
+      i++;
       update(create_msg(data_json, i), data_json);
     }
 
@@ -116,6 +129,7 @@ export function generate_random() {
   return x;
 }
 
+// gets random address from array
 export async function get_address() {
   let x = generate_random();
   let itr = 0;
@@ -137,11 +151,10 @@ export async function get_address() {
 }
 
 // deploys any type of contracts
-export async function deployContract(contract, amount, data_json) {
+export async function deployContract(contract, data_json) {
   let start = new Date().getTime();
   let cur = new Date().getTime();
   let time = [];
-  let x = generate_random();
 
   await get_address();
 
@@ -190,7 +203,7 @@ export async function update(message, data_json) {
   var tmp = message;
   var tmp2 = "| Prev_Tx :" + pre_tx;
   assign_msg(tmp + tmp2);
-  await deployContract(instance, new Int(0), data_json);
+  await deployContract(instance, data_json);
   return;
 }
 
@@ -218,15 +231,37 @@ export async function update_address() {
   return;
 }
 
-export async function start_upload(path, url){
-  // compiles & create it's instance
-  compile(path)
+// connects to mongodb server
+export async function connect_mongodb(server){
+  MongoClient.connect(server, async function (err, client) { 
+    if (err){
+      console.log(`Connot connect to ${server}`);
+      throw err;
+    }
+    db = client.db("rows_to_txid");
+    i = await db.collection("row_txid").countDocuments();
+    if(i != 0){
+      pre_tx = await db.collection("row_txid").findOne({"row": i});
+      pre_tx = pre_tx.cur_txid;
+    }
+  });
+}
 
-  // update rand_address & private_key arrays from secrets.json
+export async function start_upload(server, json_path, url){
+  // compiles & create it's instance
+  var path = "./smart_contracts/upload_data.scrypt";
+  compile(path);
+
+  await connect_mongodb(server);
+
+  if(json_path) json = require(json_path); // use your own relative path here
+
+  // update rand_address & private_key arrays from secrets.json | json_path
   await update_address();
 
   // csv file is fetched
   fetch_api(url);
 } 
 
-// start_upload("./smart_contracts/upload_data.scrypt", "https://retoolapi.dev/veKA1F/data");
+// mongodb://localhost:27017
+await start_upload("mongodb+srv://test:bsvdata@mern.bbkio.mongodb.net/?retryWrites=true&w=majority", "./secrets.json", "https://retoolapi.dev/veKA1F/data");
