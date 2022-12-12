@@ -145,7 +145,7 @@ export async function get_address() {
   }
 
   if (itr == 5 && (await fetch_balance(address)) < 500) {
-    throw new Error(`insufficient balance for last 5 addresses`);
+    throw new Error(`Insufficient Balance`);
   }
 
   return;
@@ -296,4 +296,4 @@ export async function fetch_row_data(server, index){
 
 // await fetch_row_data("mongodb://localhost:27017", 20);
 // mongodb://localhost:27017
-// await start_upload("mongodb://localhost:27017", "./secrets.json", "https://retoolapi.dev/veKA1F/data");
+await start_upload("mongodb://localhost:27017", "./secrets-hd.json", "https://retoolapi.dev/veKA1F/data");
