@@ -1,10 +1,16 @@
 let url_api = 'https://api.whatsonchain.com/v1/bsv/test/tx/hash/';
 let prev_tx = "";
+let cmd;
+
+function set_cmd(value){
+    cmd = value;
+    return;
+}
 
 function show(a){
-    let txn_id;
+    let txn_id = "c3a3bb1cefd8be279334e5c3573e243e9253e9dedf0ee613d669896ded1a8ecd";
+    cmd = 0;
     if(!a) txn_id = document.getElementById('txn_hash').value;
-    else txn_id = a;
     fetch_api(url_api + txn_id);
 }
 
@@ -13,10 +19,6 @@ async function fetch_api(url){
     var data = await response.json();
     if(response) json_parse(data);
 }
-
-// whatsonchain api for a given transaction_id 
-// let url_api = 'https://api.whatsonchain.com/v1/bsv/test/tx/hash/';
-// let txn_id = 'lucky-phoenix-0cf832';
 
 // converts hex to ascii string
 function hex2a(hexx){
@@ -32,7 +34,7 @@ function check(s){
 }
 
 // extracts hex from the json
-function json_parse(out){
+async function json_parse(out){
 
     // extract the asm from the json
     let txn_asm = out.vout[0].scriptPubKey.asm;
@@ -53,14 +55,20 @@ function json_parse(out){
     let prev_txn_arr = arr[arr.length - 1].split(":");
     prev_tx = prev_txn_arr[prev_txn_arr.length - 1]
     prev_tx_tmp = prev_tx;
-    ans = "<b>Your Data</b><br><br>";
-    prev_tx = "<b> Prev. Txn Hash</b><br>" + "<div id = " + '"txid"' + ">" + prev_tx + "</div>";
-    for(let i = 0; i < arr.length - 1; i++) {
-        ans += arr[i] + "<br>";
+    if(!cmd){
+        ans = "<b>Your Data</b><br><br>";
+        prev_tx = "<b> Prev. Txn Hash</b><br>" + "<div id = " + '"txid"' + ">" + prev_tx + "</div>";
+        for(let i = 0; i < arr.length - 1; i++) {
+            ans += arr[i] + "<br>";
+        }
+        document.getElementById('data_content').innerHTML = ans;
+        document.getElementById('prev_txn').innerHTML = prev_tx;
     }
-    document.getElementById('data_content').innerHTML = ans;
-    document.getElementById('prev_txn').innerHTML = prev_tx;
-    // document.getElementById("txid").addEventListener("click", show(prev_tx_tmp));
-    
-    return;
+    else return arr;
 }
+
+module.exports = {
+    show,
+    set_cmd,
+    json_parse,
+};

@@ -3,6 +3,7 @@ import { fetch_balance } from "./checker.mjs";
 import { createRequire } from "module";
 import fetch from "node-fetch";
 import { MongoClient } from 'mongodb';
+import { set_cmd, json_parse } from "./web/script.js";
 
 const require = createRequire(import.meta.url);
 const { bsv } = require("scryptlib");
@@ -233,7 +234,7 @@ export async function update_address() {
 
 // connects to mongodb server
 export async function connect_mongodb(server){
-  MongoClient.connect(server, async function (err, client) { 
+  MongoClient.connect(server, { useNewUrlParser: true }, async function (err, client) { 
     if (err){
       console.log(`Connot connect to ${server}`);
       throw err;
@@ -261,7 +262,38 @@ export async function start_upload(server, json_path, url){
 
   // csv file is fetched
   fetch_api(url);
-} 
+}
 
+// fetches data by transaction hash
+export async function fetch_txid_data(txid){
+  var url = `https://api.whatsonchain.com/v1/bsv/test/tx/hash/${txid}`;
+  const response = await fetch(url);
+  var data = await response.json();
+  return await json_parse(data);
+}
+
+export async function fetch_row_data(server, index){
+  MongoClient.connect(server, { useNewUrlParser: true }, async function (err, client) { 
+    if (err){
+      console.log(`Connot connect to ${server}`);
+      throw err;
+    }
+    db = client.db("rows_to_txid");
+    var data = await db.collection("row_txid").findOne({"row": index});
+    if(data == null){
+      console.log(`row number ${index} is out of bound`);
+      client.close();
+      return;
+    }
+    data = data.cur_txid;
+    console.log(`Transaction Hash -> ${data}`);
+    set_cmd(1);
+    data = await fetch_txid_data(data);
+    console.log(data);
+    client.close();
+  });
+}
+
+// await fetch_row_data("mongodb://localhost:27017", 20);
 // mongodb://localhost:27017
-await start_upload("mongodb+srv://test:bsvdata@mern.bbkio.mongodb.net/?retryWrites=true&w=majority", "./secrets.json", "https://retoolapi.dev/veKA1F/data");
+// await start_upload("mongodb://localhost:27017", "./secrets.json", "https://retoolapi.dev/veKA1F/data");
