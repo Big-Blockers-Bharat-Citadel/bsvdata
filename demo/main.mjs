@@ -1,5 +1,5 @@
-import { buildContractClass, Bytes, compileContract, Int } from "scryptlib";
-import { fetch_balance } from "./checker.mjs";
+import { buildContractClass, Bytes, compileContract } from "scryptlib";
+import { fetch_balance } from "../lib/checker.mjs";
 import { createRequire } from "module";
 import fetch from "node-fetch";
 import { MongoClient } from 'mongodb';
@@ -210,8 +210,7 @@ export async function update(message, data_json) {
 
 // convert dataframe row to string
 export function create_msg(data, i) {
-  let data_string =
-    data[i].id + " " + data[i].file_name + " " + data[i].prediction;
+  let data_string = data[i].id + " " + data[i].file_name + " " + data[i].prediction;
   return data_string;
 }
 
@@ -220,7 +219,10 @@ export async function fetch_api(url) {
   const response = await fetch(url);
   let data = await response.json();
   last_row_index = data.length;
-
+  if(i >= last_row_index){
+    console.log(`${i} row is out of bound`);
+    throw new Error(`Out of Bounds`);
+  }
   update(create_msg(data, i), data);
 }
 
@@ -250,7 +252,7 @@ export async function connect_mongodb(server){
 
 export async function start_upload(server, json_path, url){
   // compiles & create it's instance
-  var path = "./smart_contracts/upload_data.scrypt";
+  var path = "lib/upload_data.scrypt";
   compile(path);
 
   await connect_mongodb(server);
@@ -261,7 +263,7 @@ export async function start_upload(server, json_path, url){
   await update_address();
 
   // csv file is fetched
-  fetch_api(url);
+  await fetch_api(url);
 }
 
 // fetches data by transaction hash
@@ -289,11 +291,11 @@ export async function fetch_row_data(server, index){
     console.log(`Transaction Hash -> ${data}`);
     set_cmd(1);
     data = await fetch_txid_data(data);
-    console.log(data);
+    if(data) console.log(data);
     client.close();
   });
 }
 
-// await fetch_row_data("mongodb://localhost:27017", 20);
+// fetch_row_data("mongodb://localhost:27017", 18);
 // mongodb://localhost:27017
-await start_upload("mongodb://localhost:27017", "./secrets-hd.json", "https://retoolapi.dev/veKA1F/data");
+// await start_upload("mongodb://localhost:27017", "./secrets.json", "https://retoolapi.dev/veKA1F/data");
