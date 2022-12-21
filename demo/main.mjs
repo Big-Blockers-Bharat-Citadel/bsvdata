@@ -1,4 +1,4 @@
-import { buildContractClass, Bytes, compileContract } from "scryptlib";
+import { buildContractClass, Bytes, compileContract, bsv } from "scryptlib";
 import { fetch_balance } from "../lib/checker.mjs";
 import { createRequire } from "module";
 import fetch from "node-fetch";
@@ -6,7 +6,6 @@ import { MongoClient } from 'mongodb';
 import { set_cmd, json_parse } from "./web/script.js";
 
 const require = createRequire(import.meta.url);
-const { bsv } = require("scryptlib");
 const axios = require("axios");
 const API_PREFIX = "https://api.whatsonchain.com/v1/bsv/test";
 
@@ -252,7 +251,7 @@ export async function connect_mongodb(server){
 
 export async function start_upload(server, json_path, url){
   // compiles & create it's instance
-  var path = "lib/upload_data.scrypt";
+  var path = "demo/upload_data.scrypt";
   compile(path);
 
   await connect_mongodb(server);
@@ -297,5 +296,4 @@ export async function fetch_row_data(server, index){
 }
 
 // fetch_row_data("mongodb://localhost:27017", 18);
-// mongodb://localhost:27017
 // await start_upload("mongodb://localhost:27017", "./secrets.json", "https://retoolapi.dev/veKA1F/data");

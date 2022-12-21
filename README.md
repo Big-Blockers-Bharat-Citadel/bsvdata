@@ -59,7 +59,6 @@ This whole process has been achieved by making use of Smart-Contract, which is w
 4. You will recieve a transaction hash which can be used to see all the details using [Test-Whatonchain](https://test.whatsonchain.com/) webage or our [webpage](https://block-data.netlify.app/)
 
 
-## Contributors
+## Developed & Maintained by
 
 * [Ayush Kumar](https://github.com/Thisisakr47)
-* [Shubham Gautam](https://github.com/shubham78901)
