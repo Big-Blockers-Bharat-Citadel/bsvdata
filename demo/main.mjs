@@ -1,5 +1,5 @@
 import { buildContractClass, Bytes, compileContract, bsv } from "scryptlib";
-import { fetch_balance } from "../lib/checker.mjs";
+import { fetch_balance, set_credentials } from "../lib/checker.mjs";
 import { createRequire } from "module";
 import fetch from "node-fetch";
 import { MongoClient } from 'mongodb';
